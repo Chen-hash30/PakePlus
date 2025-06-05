@@ -1,22 +1,108 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>打地鼠游戏</title>
+    <style>
+        body { font-family: Arial, sans-serif; text-align: center; background: #f0f0f0; }
+        #game { margin: 30px auto; width: 330px; }
+        .row { display: flex; }
+        .hole {
+            width: 100px; height: 100px; margin: 5px;
+            background: #8d5524; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; position: relative;
+            box-shadow: 0 4px #654321;
+            transition: background 0.2s;
+        }
+        .mole {
+            width: 60px; height: 60px;
+            background: #c68642; border-radius: 50%;
+            position: absolute; top: 20px; left: 20px;
+            box-shadow: 0 2px #654321;
+        }
+        #score, #timer { font-size: 20px; margin: 10px; }
+        #startBtn { padding: 10px 30px; font-size: 18px; }
+    </style>
+</head>
+<body>
+    <h1>打地鼠游戏</h1>
+    <div id="score">得分: 0</div>
+    <div id="timer">时间: 30</div>
+    <button id="startBtn">开始游戏</button>
+    <div id="game"></div>
+    <script>
+        const game = document.getElementById('game');
+        const scoreEl = document.getElementById('score');
+        const timerEl = document.getElementById('timer');
+        const startBtn = document.getElementById('startBtn');
+        let score = 0, time = 30, timer, moleTimer, active = false, moleIndex = -1;
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
+        function createBoard() {
+            game.innerHTML = '';
+            for (let i = 0; i < 3; i++) {
+                const row = document.createElement('div');
+                row.className = 'row';
+                for (let j = 0; j < 3; j++) {
+                    const hole = document.createElement('div');
+                    hole.className = 'hole';
+                    hole.dataset.index = i * 3 + j;
+                    hole.onclick = hitMole;
+                    row.appendChild(hole);
+                }
+                game.appendChild(row);
+            }
+        }
 
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit">Greet</button>
-            </form>
-            <p id="greet-msg"></p>
-        </main>
-    </body>
+        function showMole() {
+            if (moleIndex !== -1) {
+                const prev = document.querySelector(`.hole[data-index="${moleIndex}"] .mole`);
+                if (prev) prev.remove();
+            }
+            moleIndex = Math.floor(Math.random() * 9);
+            const hole = document.querySelector(`.hole[data-index="${moleIndex}"]`);
+            const mole = document.createElement('div');
+            mole.className = 'mole';
+            hole.appendChild(mole);
+        }
+
+        function hitMole(e) {
+            if (!active) return;
+            if (this.dataset.index == moleIndex) {
+                score++;
+                scoreEl.textContent = '得分: ' + score;
+                showMole();
+            }
+        }
+
+        function startGame() {
+            score = 0;
+            time = 30;
+            active = true;
+            scoreEl.textContent = '得分: 0';
+            timerEl.textContent = '时间: 30';
+            startBtn.disabled = true;
+            showMole();
+            moleTimer = setInterval(showMole, 800);
+            timer = setInterval(() => {
+                time--;
+                timerEl.textContent = '时间: ' + time;
+                if (time <= 0) endGame();
+            }, 1000);
+        }
+
+        function endGame() {
+            active = false;
+            clearInterval(timer);
+            clearInterval(moleTimer);
+            const prev = document.querySelector(`.hole[data-index="${moleIndex}"] .mole`);
+            if (prev) prev.remove();
+            startBtn.disabled = false;
+            alert('游戏结束！你的得分是: ' + score);
+        }
+
+        startBtn.onclick = startGame;
+        createBoard();
+    </script>
+</body>
 </html>
