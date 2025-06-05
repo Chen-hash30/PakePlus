@@ -1,22 +1,1080 @@
 <!DOCTYPE html>
-<html lang="en">
-    <head>
-        <meta charset="UTF-8" />
-        <link rel="stylesheet" href="styles.css" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>PakePlus App</title>
-        <script type="module" src="/main.js" defer></script>
-    </head>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>易聊 1.0</title>
+    <link href="https://fonts.googleapis.com/css?family=Roboto:400,700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --main-blue: #2563eb;
+            --main-blue-dark: #1d4ed8;
+            --main-bg: #f4f6fb;
+            --sidebar-bg: #f1f5f9;
+            --bubble-radius: 18px;
+            --bubble-padding: 12px 16px;
+            --avatar-size: 40px;
+            --avatar-size-lg: 56px;
+            --transition: cubic-bezier(.4,0,.2,1);
+        }
+        body {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            background: var(--main-bg);
+            color: #222;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 8px 32px rgba(60,60,120,0.12);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            transition: box-shadow 0.5s var(--transition), border-radius 0.5s var(--transition);
+        }
+        .topbar {
+            background: #fff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            flex-direction: column;
+            align-items: stretch;
+            padding: 0;
+            transition: background 0.4s var(--transition);
+        }
+        .topbar-title {
+            text-align: center;
+            font-size: 22px;
+            font-weight: bold;
+            letter-spacing: 2px;
+            padding: 18px 0 6px 0;
+            transition: color 0.4s var(--transition);
+        }
+        .topbar-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 8px 8px 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+            flex-direction: row;
+        }
+        .topbar-user {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+        .topbar-btns {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+        }
+        .topbar-avatar {
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+            transition: box-shadow 0.3s var(--transition);
+        }
+        .topbar-nick {
+            font-weight: bold;
+            font-size: 16px;
+            max-width: 90px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .topbar-friend-select {
+            position: relative;
+            min-width: 120px;
+            max-width: 220px;
+            flex: 1;
+        }
+        .friend-select-btn {
+            width: 100%;
+            background: #f1f5f9;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            padding: 8px 12px;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            min-width: 0;
+            transition: background 0.3s var(--transition), border 0.3s var(--transition);
+        }
+        .friend-select-list {
+            position: absolute;
+            left: 0; right: 0; top: 110%;
+            background: #fff;
+            border: 1px solid #d1d5db;
+            border-radius: 12px;
+            box-shadow: 0 2px 12px #0002;
+            z-index: 20;
+            max-height: 260px;
+            overflow-y: auto;
+            min-width: 180px;
+            animation: fadeInUp 0.35s var(--transition);
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px);}
+            to   { opacity: 1; transform: translateY(0);}
+        }
+        .friend-select-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background 0.15s var(--transition);
+        }
+        .friend-select-item.selected, .friend-select-item:hover {
+            background: #e0e7ff;
+        }
+        .friend-select-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+        }
+        .friend-select-nick {
+            font-size: 15px;
+            font-weight: 500;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .topbar-addfriend {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            max-width: 180px;
+            min-width: 0;
+        }
+        .topbar-addfriend input {
+            flex: 1;
+            padding: 8px 10px;
+            border-radius: 12px;
+            border: 1px solid #d1d5db;
+            font-size: 15px;
+            transition: border 0.3s var(--transition);
+        }
+        .topbar-addfriend button {
+            padding: 8px 14px;
+            border-radius: 12px;
+            border: none;
+            background: var(--main-blue);
+            color: #fff;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s var(--transition);
+        }
+        .topbar-addfriend button:hover {
+            background: var(--main-blue-dark);
+        }
+        .topbar-logout, .topbar-admin {
+            background: var(--main-blue);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 8px 14px;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.2s var(--transition);
+            margin-left: 4px;
+        }
+        .topbar-logout:hover, .topbar-admin:hover {
+            background: var(--main-blue-dark);
+        }
+        .main-content {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            background: #fff;
+            padding-bottom: 80px; /* 留出底部输入框空间 */
+        }
+        .chat-main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            background: #fff;
+        }
+        .chat-header {
+            padding: 18px 32px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 18px;
+            font-weight: bold;
+            background: #f9fafb;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .chat-header-avatar {
+            width: var(--avatar-size);
+            height: var(--avatar-size);
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+        }
+        .chat-header-nick {
+            font-weight: bold;
+            font-size: 17px;
+        }
+        .messages {
+            flex: 1;
+            padding: 24px 10px 24px 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: #fff;
+            transition: background 0.3s var(--transition);
+        }
+        .message-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 8px;
+            opacity: 1;
+            transform: translateY(0);
+            transition: opacity 0.4s var(--transition), transform 0.4s var(--transition);
+        }
+        .message-row.me {
+            flex-direction: row-reverse;
+        }
+        .message-avatar {
+            width: var(--avatar-size-lg);
+            height: var(--avatar-size-lg);
+            border-radius: 50%;
+            object-fit: cover;
+            background: #eee;
+            transition: box-shadow 0.3s var(--transition);
+        }
+        .message-bubble {
+            background: #e0e7ff;
+            color: #222;
+            border-radius: var(--bubble-radius);
+            padding: var(--bubble-padding);
+            max-width: 70vw;
+            min-width: 40px;
+            word-break: break-all;
+            font-size: 15px;
+            box-shadow: 0 2px 8px #0001;
+            transition: background 0.2s var(--transition), color 0.2s var(--transition);
+        }
+        .message-row.me .message-bubble {
+            background: var(--main-blue);
+            color: #fff;
+        }
+        .message .file-link {
+            color: var(--main-blue);
+            text-decoration: underline;
+            font-size: 15px;
+        }
+        .chat-input-area {
+            display: flex;
+            align-items: center;
+            padding: 16px 18px;
+            border-top: 1px solid #e5e7eb;
+            gap: 8px;
+            background: #f9fafb;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 10;
+            transition: background 0.3s var(--transition);
+            max-width: 900px;
+            margin: 0 auto;
+        }
+        .chat-input-area input[type="text"] {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 14px;
+            border: 1px solid #d1d5db;
+            font-size: 16px;
+            transition: border 0.3s var(--transition);
+        }
+        .chat-input-area input[type="file"] {
+            display: none;
+        }
+        .chat-input-area label {
+            background: #e0e7ff;
+            color: var(--main-blue);
+            padding: 8px 12px;
+            border-radius: 14px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background 0.2s var(--transition);
+        }
+        .chat-input-area button {
+            background: var(--main-blue);
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            padding: 10px 18px;
+            font-size: 16px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s var(--transition);
+        }
+        .chat-input-area button:hover {
+            background: var(--main-blue-dark);
+        }
+        /* 毛玻璃弹窗 */
+        #settings-modal {
+            display: none;
+            position: fixed;
+            left: 0; top: 0; width: 100vw; height: 100vh;
+            z-index: 999;
+            background: rgba(0,0,0,0.2);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(8px) saturate(1.5);
+            -webkit-backdrop-filter: blur(8px) saturate(1.5);
+            animation: fadeInModal 0.4s var(--transition);
+        }
+        @keyframes fadeInModal {
+            from { opacity: 0; }
+            to   { opacity: 1; }
+        }
+        #settings-modal > div {
+            background: rgba(255,255,255,0.85);
+            border-radius: 18px;
+            box-shadow: 0 2px 16px #0001;
+            min-width: 300px;
+            animation: popIn 0.35s var(--transition);
+        }
+        @keyframes popIn {
+            from { opacity: 0; transform: scale(0.92);}
+            to   { opacity: 1; transform: scale(1);}
+        }
+        #btn-save-profile, #btn-cancel-profile, #btn-upload-avatar, #btn-delete-account {
+            background: var(--main-blue);
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-left: 0;
+            margin-right: 8px;
+            font-size: 15px;
+            transition: background 0.2s var(--transition);
+        }
+        #btn-save-profile:hover, #btn-cancel-profile:hover, #btn-upload-avatar:hover, #btn-delete-account:hover {
+            background: var(--main-blue-dark);
+        }
+        #btn-delete-account {
+            background: #e11d48;
+        }
+        #btn-delete-account:hover {
+            background: #b91c1c;
+        }
+        /* 消息动画 */
+        .message-row.new-anim {
+            animation: msgIn 0.45s var(--transition);
+        }
+        @keyframes msgIn {
+            from { opacity: 0; transform: translateY(30px);}
+            to   { opacity: 1; transform: translateY(0);}
+        }
+        @media (max-width: 900px) {
+            .container { max-width: 100vw; border-radius: 0; }
+            .sidebar { width: 100px; }
+            .friend-nick { display: none; }
+            .topbar-nick { display: none; }
+            .topbar-row { flex-wrap: wrap; gap: 4px; }
+            .chat-input-area { max-width: 100vw; }
+        }
+        @media (max-width: 700px) {
+            .container { flex-direction: column; min-height: unset; border-radius: 0; }
+            .main-content { flex-direction: column; padding-bottom: 70px; }
+            .sidebar { display: none; }
+            .friends-list { display: none; }
+            .topbar-row, .topbar-row2 { flex-direction: column; align-items: stretch; gap: 6px; }
+            .topbar-user { justify-content: flex-start; }
+            .topbar-btns { justify-content: flex-end; margin-left: 0; }
+            .topbar-addfriend, .topbar-friend-select { max-width: 100vw; }
+            .chat-input-area { padding: 10px 6px; position: fixed; left: 0; right: 0; bottom: 0; background: #f9fafb; max-width: 100vw;}
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script>
+const API_BASE = 'http://aiphone.iepose.cn'; // 修改为你的后端实际地址
 
-    <body>
-        <main class="container">
-            <h1>Welcome to PakePlus</h1>
+function logout() {
+    localStorage.removeItem('currentUser');
+    render();
+}
 
-            <form class="row" id="greet-form">
-                <input id="greet-input" placeholder="Enter a name..." />
-                <button type="submit">Greet</button>
-            </form>
-            <p id="greet-msg"></p>
-        </main>
-    </body>
+function getCurrentUser() {
+    return JSON.parse(localStorage.getItem('currentUser') || 'null');
+}
+function setCurrentUser(user) {
+    localStorage.setItem('currentUser', JSON.stringify(user));
+}
+
+// 密码强度校验
+function checkPassword(pwd) {
+    return pwd.length >= 6 &&
+        /[a-z]/.test(pwd) &&
+        /[A-Z]/.test(pwd) &&
+        /\d/.test(pwd);
+}
+
+function render() {
+    const root = document.getElementById('root');
+    const user = getCurrentUser();
+    if (!user) {
+        renderAuth(root);
+    } else if (user.username === 'admincx') {
+        renderChat(root, user, true);
+    } else {
+        renderChat(root, user, false);
+    }
+}
+
+// 登录注册页面
+function renderAuth(root) {
+    root.innerHTML = `
+        <div class="container" style="min-height:100vh;">
+            <div class="auth">
+                <h1 id="auth-title">易聊 1.0</h1>
+                <input id="auth-username" placeholder="用户名" autocomplete="username"/>
+                <input id="auth-password" type="password" placeholder="密码" autocomplete="current-password"/>
+                <button id="auth-btn">登录</button>
+                <div class="switch-auth" id="switch-auth">没有账号？注册</div>
+                <div id="auth-error" style="color:#e11d48;margin-top:10px;"></div>
+            </div>
+        </div>
+    `;
+    let isLogin = true;
+    document.getElementById('switch-auth').onclick = () => {
+        isLogin = !isLogin;
+        document.getElementById('auth-title').innerText = '易聊 1.0';
+        document.getElementById('auth-btn').innerText = isLogin ? '登录' : '注册';
+        document.getElementById('switch-auth').innerText = isLogin ? '没有账号？注册' : '已有账号？登录';
+        document.getElementById('auth-error').innerText = '';
+    };
+    document.getElementById('auth-btn').onclick = async () => {
+        const username = document.getElementById('auth-username').value.trim();
+        const password = document.getElementById('auth-password').value;
+        if (!username || !password) {
+            document.getElementById('auth-error').innerText = '请输入用户名和密码';
+            return;
+        }
+        if (!isLogin && !checkPassword(password)) {
+            document.getElementById('auth-error').innerText = '密码不少于6位，且包含数字、大小写字母';
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/api/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username, password })
+            });
+            const data = await res.json();
+            if (!data.success) {
+                document.getElementById('auth-error').innerText = data.message || '用户名或密码错误';
+                return;
+            }
+            setCurrentUser({ username });
+            render();
+        } catch (e) {
+            document.getElementById('auth-error').innerText = '网络错误';
+        }
+    };
+}
+
+// 聊天页面
+function renderChat(root, user, isAdmin) {
+    let selectedFriend = localStorage.getItem('selectedFriend') || '';
+    let messagesTimer = null;
+    let lastMessagesKey = '';
+    let lastMessagesData = '';
+    let myProfile = {nickname: user.username, avatar: 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg'};
+    let friendsCache = [];
+    let pendingRequests = [];
+
+    root.innerHTML = `
+        <div class="container">
+            <div class="topbar">
+                <!-- 删除 .topbar-title -->
+                <div class="topbar-row">
+                    <div class="topbar-user">
+                        <img id="my-avatar" class="topbar-avatar" src="" alt="头像">
+                        <span id="my-nick" class="topbar-user-nick"></span>
+                    </div>
+                    <div class="topbar-btns">
+                        ${isAdmin ? `<button class="topbar-admin" id="btn-admin">后台管理</button>` : ''}
+                        <button class="topbar-logout" onclick="logout()">退出登录</button>
+                    </div>
+                </div>
+                <div class="topbar-row2">
+                    <div class="topbar-friend-select" id="friend-select-wrap"></div>
+                    <form class="topbar-addfriend" id="add-friend-form" autocomplete="off" style="margin:0;">
+                        <input id="add-friend-input" placeholder="添加好友用户名" />
+                        <button type="submit">添加</button>
+                    </form>
+                </div>
+            </div>
+            <div class="main-content">
+                <div class="chat-main">
+                    <div class="chat-header" id="chat-header"></div>
+                    <div class="messages" id="messages"></div>
+                    <form class="chat-input-area" id="chat-input-form" autocomplete="off">
+                        <input type="text" id="chat-input" placeholder="输入消息..." autocomplete="off"/>
+                        <input type="file" id="file-input" />
+                        <label for="file-input" title="发送文件">📎</label>
+                        <button type="submit">发送</button>
+                    </form>
+                </div>
+            </div>
+            <div id="settings-modal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:999;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+                <div style="background:#fff;padding:32px 24px;border-radius:12px;min-width:300px;box-shadow:0 2px 16px #0001;position:relative;">
+                    <h2 style="margin-top:0;">个人设置</h2>
+                    <div style="margin-bottom:16px;">
+                        <label>头像：</label>
+                        <input type="file" id="avatar-input" accept="image/*" style="display:none;">
+                        <img id="avatar-preview" src="" alt="头像" style="width:64px;height:64px;border-radius:50%;object-fit:cover;background:#eee;vertical-align:middle;"/>
+                        <button id="btn-upload-avatar" type="button" style="margin-left:10px;">更换头像</button>
+                    </div>
+                    <div style="margin-bottom:16px;">
+                        <label>昵称：</label>
+                        <input id="nick-input" style="padding:6px 10px;border-radius:6px;border:1px solid #ccc;" maxlength="20"/>
+                    </div>
+                    <div style="text-align:right;">
+                        <button id="btn-save-profile" type="button" style="background:#2563eb;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:bold;">保存</button>
+                        <button id="btn-cancel-profile" type="button" style="margin-left:10px;">取消</button>
+                        ${!isAdmin ? `<button id="btn-delete-account" type="button" style="margin-left:10px;background:#e11d48;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:bold;">注销账号</button>` : ''}
+                    </div>
+                </div>
+            </div>
+            <div id="admin-modal" style="display:none;position:fixed;left:0;top:0;width:100vw;height:100vh;z-index:999;background:rgba(0,0,0,0.2);align-items:center;justify-content:center;">
+                <div style="background:#fff;padding:32px 24px;border-radius:12px;min-width:340px;max-width:96vw;box-shadow:0 2px 16px #0001;position:relative;max-height:90vh;overflow:auto;">
+                    <h2 style="margin-top:0;">后台管理</h2>
+                    <div id="admin-users-list"></div>
+                    <div style="text-align:right;margin-top:18px;">
+                        <button id="btn-close-admin" type="button" style="background:#2563eb;color:#fff;border:none;padding:8px 18px;border-radius:6px;font-weight:bold;">关闭</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // 个人信息加载与显示
+    async function loadProfile() {
+        try {
+            const res = await fetch(`${API_BASE}/api/profile?username=${encodeURIComponent(user.username)}`);
+            const data = await res.json();
+            myProfile = {
+                nickname: data.nickname || user.username,
+                avatar: data.avatar || 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg'
+            };
+            document.getElementById('my-avatar').src = myProfile.avatar;
+            document.getElementById('my-nick').innerText = myProfile.nickname;
+            document.getElementById('avatar-preview').src = myProfile.avatar;
+            document.getElementById('nick-input').value = data.nickname || '';
+        } catch {
+            document.getElementById('my-avatar').src = myProfile.avatar;
+            document.getElementById('my-nick').innerText = myProfile.nickname;
+            document.getElementById('avatar-preview').src = myProfile.avatar;
+            document.getElementById('nick-input').value = '';
+        }
+    }
+    loadProfile();
+
+    // 设置弹窗逻辑
+    document.getElementById('my-avatar').onclick = () => {
+        document.getElementById('settings-modal').style.display = 'flex';
+    };
+    document.getElementById('my-nick').onclick = () => {
+        document.getElementById('settings-modal').style.display = 'flex';
+    };
+    document.getElementById('btn-cancel-profile').onclick = () => {
+        document.getElementById('settings-modal').style.display = 'none';
+    };
+    document.getElementById('btn-upload-avatar').onclick = () => {
+        document.getElementById('avatar-input').click();
+    };
+    document.getElementById('avatar-input').onchange = function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(evt) {
+            document.getElementById('avatar-preview').src = evt.target.result;
+        };
+        reader.readAsDataURL(file);
+    };
+    document.getElementById('btn-save-profile').onclick = async () => {
+        const nickname = document.getElementById('nick-input').value.trim();
+        const avatar = document.getElementById('avatar-preview').src;
+        try {
+            await fetch(`${API_BASE}/api/profile`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ username: user.username, nickname, avatar })
+            });
+            document.getElementById('settings-modal').style.display = 'none';
+            loadProfile();
+        } catch {
+            alert('保存失败');
+        }
+    };
+    // 注销账号
+    if (!isAdmin && document.getElementById('btn-delete-account')) {
+        document.getElementById('btn-delete-account').onclick = async () => {
+            if (!confirm('确定要注销账号吗？此操作不可恢复！')) return;
+            try {
+                await fetch(`${API_BASE}/api/delete-user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: user.username })
+                });
+                logout();
+            } catch {
+                alert('注销失败');
+            }
+        };
+    }
+
+    // 好友请求相关
+    async function loadPendingRequests() {
+        try {
+            const res = await fetch(`${API_BASE}/api/friend-requests?username=${encodeURIComponent(user.username)}`);
+            const data = await res.json();
+            pendingRequests = data.requests || [];
+            renderPendingRequests();
+        } catch {}
+    }
+    function renderPendingRequests() {
+        // 顶部添加一个下拉或弹窗，展示待处理请求
+        let exist = document.getElementById('pending-requests-tip');
+        if (pendingRequests.length > 0) {
+            if (!exist) {
+                const tip = document.createElement('div');
+                tip.id = 'pending-requests-tip';
+                tip.style = 'position:fixed;top:60px;right:16px;z-index:1000;background:#fff;border-radius:12px;box-shadow:0 2px 8px #0002;padding:12px 18px;';
+                tip.innerHTML = `<b>好友请求：</b><ul style="margin:8px 0 0 0;padding:0;list-style:none;">
+                    ${pendingRequests.map(r=>`<li style="margin-bottom:6px;">
+                        <span>${r.from}</span>
+                        <button data-from="${r.from}" class="btn-accept" style="margin-left:10px;background:#2563eb;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;">同意</button>
+                        <button data-from="${r.from}" class="btn-reject" style="margin-left:4px;background:#e11d48;color:#fff;border:none;border-radius:6px;padding:4px 10px;cursor:pointer;">拒绝</button>
+                    </li>`).join('')}
+                </ul>`;
+                document.body.appendChild(tip);
+                tip.querySelectorAll('.btn-accept').forEach(btn=>{
+                    btn.onclick = async ()=>{
+                        await fetch(`${API_BASE}/api/accept-friend-request`, {
+                            method: 'POST',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({username: user.username, from: btn.getAttribute('data-from')})
+                        });
+                        tip.remove();
+                        loadPendingRequests();
+                        renderFriendSelect();
+                    };
+                });
+                tip.querySelectorAll('.btn-reject').forEach(btn=>{
+                    btn.onclick = async ()=>{
+                        await fetch(`${API_BASE}/api/reject-friend-request`, {
+                            method: 'POST',
+                            headers: {'Content-Type':'application/json'},
+                            body: JSON.stringify({username: user.username, from: btn.getAttribute('data-from')})
+                        });
+                        tip.remove();
+                        loadPendingRequests();
+                    };
+                });
+            }
+        } else if (exist) {
+            exist.remove();
+        }
+    }
+    loadPendingRequests();
+
+    // 好友下拉选择
+    async function renderFriendSelect() {
+        const wrap = document.getElementById('friend-select-wrap');
+        wrap.innerHTML = `<div class="friend-select-btn" id="friend-select-btn"><span>选择好友</span></div>`;
+        let friendList = [];
+        try {
+            const res = await fetch(`${API_BASE}/api/friends?username=${encodeURIComponent(user.username)}`);
+            const data = await res.json();
+            friendList = data.friends || [];
+            friendsCache = friendList;
+        } catch { }
+        // 获取所有好友资料
+        const profiles = {};
+        for (const f of friendList) {
+            profiles[f] = {nickname: f, avatar: 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg'};
+            try {
+                const res2 = await fetch(`${API_BASE}/api/profile?username=${encodeURIComponent(f)}`);
+                const d2 = await res2.json();
+                if (d2.nickname) profiles[f].nickname = d2.nickname;
+                if (d2.avatar) profiles[f].avatar = d2.avatar;
+            } catch {}
+        }
+        // 当前选中
+        let cur = selectedFriend && friendList.includes(selectedFriend) ? selectedFriend : (friendList[0] || '');
+        selectedFriend = cur;
+        localStorage.setItem('selectedFriend', selectedFriend || '');
+        // 渲染按钮
+        wrap.innerHTML = `
+            <div class="friend-select-btn" id="friend-select-btn">
+                ${cur ? `<img src="${profiles[cur].avatar}" class="friend-select-avatar" alt="头像"><span class="friend-select-nick">${profiles[cur].nickname}</span>` : '<span>选择好友</span>'}
+                <span style="margin-left:auto;">▼</span>
+            </div>
+            <div class="friend-select-list" id="friend-select-list" style="display:none;"></div>
+        `;
+        // 渲染下拉
+        const listDiv = wrap.querySelector('#friend-select-list');
+        wrap.querySelector('#friend-select-btn').onclick = () => {
+            listDiv.style.display = listDiv.style.display === 'block' ? 'none' : 'block';
+            if (listDiv.style.display === 'block') {
+                listDiv.innerHTML = friendList.length === 0 ? '<div style="padding:12px;color:#888;">暂无好友</div>' :
+                    friendList.map(f =>
+                        `<div class="friend-select-item${f === selectedFriend ? ' selected' : ''}" data-f="${f}">
+                            <img src="${profiles[f].avatar}" class="friend-select-avatar" alt="头像">
+                            <span class="friend-select-nick">${profiles[f].nickname}</span>
+                        </div>`
+                    ).join('');
+                // 滚动到当前
+                setTimeout(() => {
+                    const sel = listDiv.querySelector('.selected');
+                    if (sel) sel.scrollIntoView({block:'nearest'});
+                }, 0);
+            }
+        };
+        listDiv.onclick = e => {
+            let target = e.target;
+            while (target && !target.classList.contains('friend-select-item')) target = target.parentElement;
+            if (target) {
+                const f = target.getAttribute('data-f');
+                selectedFriend = f;
+                localStorage.setItem('selectedFriend', selectedFriend);
+                renderFriendSelect();
+                renderHeader();
+                renderMessages();
+                resetMessagesTimer();
+            }
+            listDiv.style.display = 'none';
+        };
+        document.body.onclick = e => {
+            if (!wrap.contains(e.target)) listDiv.style.display = 'none';
+        };
+        renderHeader();
+        renderMessages();
+    }
+    renderFriendSelect();
+
+    // 好友侧边栏
+    async function renderFriends() {
+        const friendsList = document.getElementById('friends-list');
+        friendsList.innerHTML = '<div style="color:#888;text-align:center;margin-top:20px;">加载中...</div>';
+        try {
+            const res = await fetch(`${API_BASE}/api/friends?username=${encodeURIComponent(user.username)}`);
+            const data = await res.json();
+            friendsList.innerHTML = '';
+            if (!data.friends || data.friends.length === 0) {
+                friendsList.innerHTML = '<div style="color:#888;text-align:center;margin-top:20px;">暂无好友</div>';
+            } else {
+                for (const friend of data.friends) {
+                    let friendProfile = {nickname: friend, avatar: 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg'};
+                    try {
+                        const res2 = await fetch(`${API_BASE}/api/profile?username=${encodeURIComponent(friend)}`);
+                        const d2 = await res2.json();
+                        if (d2.nickname) friendProfile.nickname = d2.nickname;
+                        if (d2.avatar) friendProfile.avatar = d2.avatar;
+                    } catch {}
+                    const div = document.createElement('div');
+                    div.className = 'friend' + (friend === selectedFriend ? ' selected' : '');
+                    div.innerHTML = `<img src="${friendProfile.avatar}" class="friend-avatar" alt="头像"><span class="friend-nick">${friendProfile.nickname}</span>`;
+                    div.onclick = () => {
+                        selectedFriend = friend;
+                        localStorage.setItem('selectedFriend', friend);
+                        renderFriendSelect();
+                        renderFriends();
+                        renderHeader();
+                        renderMessages();
+                        resetMessagesTimer();
+                    };
+                    friendsList.appendChild(div);
+                }
+            }
+        } catch {
+            friendsList.innerHTML = '<div style="color:red;text-align:center;margin-top:20px;">加载失败</div>';
+        }
+    }
+    renderFriends();
+
+    // 添加好友
+    document.getElementById('add-friend-form').onsubmit = async e => {
+        e.preventDefault();
+        const friendName = document.getElementById('add-friend-input').value.trim();
+        if (!friendName || friendName === user.username) return;
+        try {
+            const res = await fetch(`${API_BASE}/api/send-friend-request`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ from: user.username, to: friendName })
+            });
+            const data = await res.json();
+            alert(data.message);
+        } catch {
+            alert('网络错误');
+        }
+        document.getElementById('add-friend-input').value = '';
+    };
+
+    // 聊天头部
+    async function renderHeader() {
+        if (!selectedFriend) {
+            document.getElementById('chat-header').innerText = '请选择好友';
+            return;
+        }
+        let friendProfile = {nickname: selectedFriend, avatar: 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg'};
+        try {
+            const res = await fetch(`${API_BASE}/api/profile?username=${encodeURIComponent(selectedFriend)}`);
+            const d2 = await res.json();
+            if (d2.nickname) friendProfile.nickname = d2.nickname;
+            if (d2.avatar) friendProfile.avatar = d2.avatar;
+        } catch {}
+        document.getElementById('chat-header').innerHTML = `<img src="${friendProfile.avatar}" class="chat-header-avatar" alt="头像"><span class="chat-header-nick">${friendProfile.nickname}</span>`;
+    }
+
+    // 消息渲染（diff优化，避免闪烁，平滑推入）
+    async function renderMessages() {
+        if (!selectedFriend) {
+            document.getElementById('messages').innerHTML = '';
+            return;
+        }
+        try {
+            const res = await fetch(`${API_BASE}/api/messages?user1=${encodeURIComponent(user.username)}&user2=${encodeURIComponent(selectedFriend)}`);
+            const data = await res.json();
+            const key = user.username + '___' + selectedFriend;
+            const dataArr = data.messages || [];
+            const dataStr = JSON.stringify(dataArr);
+            if (lastMessagesKey === key && lastMessagesData === dataStr) return;
+            // 平滑推入新消息
+            const messagesDiv = document.getElementById('messages');
+            // 仅增量添加
+            let prevArr = [];
+            try { prevArr = JSON.parse(lastMessagesData); } catch {}
+            let startIdx = 0;
+            while (startIdx < prevArr.length && startIdx < dataArr.length && JSON.stringify(prevArr[startIdx]) === JSON.stringify(dataArr[startIdx])) {
+                startIdx++;
+            }
+            // 只添加新消息
+            for (let i = startIdx; i < dataArr.length; i++) {
+                const msg = dataArr[i];
+                const isMe = msg.from === user.username;
+                let avatar = isMe ? myProfile.avatar : 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg';
+                let nick = isMe ? myProfile.nickname : msg.from;
+                if (!isMe) {
+                    try {
+                        const res2 = await fetch(`${API_BASE}/api/profile?username=${encodeURIComponent(msg.from)}`);
+                        const d2 = await res2.json();
+                        if (d2.avatar) avatar = d2.avatar;
+                        if (d2.nickname) nick = d2.nickname;
+                    } catch {}
+                }
+                const row = document.createElement('div');
+                row.className = 'message-row' + (isMe ? ' me' : '') + ' new-anim';
+                row.innerHTML = `
+                    <img src="${avatar}" class="message-avatar" alt="头像">
+                    <div class="message-bubble">
+                        ${
+                            msg.type === 'file'
+                            ? `<span>📎 <a class="file-link" href="${msg.content}" download="${msg.filename || msg.fileName}" target="_blank">${msg.filename || msg.fileName}</a></span>`
+                            : msg.type === 'image'
+                                ? `<span><img src="${msg.content}" alt="图片" style="max-width:180px;max-height:120px;border-radius:10px;"></span>`
+                                : msg.content
+                        }
+                    </div>
+                `;
+                messagesDiv.appendChild(row);
+                setTimeout(() => row.classList.remove('new-anim'), 500);
+            }
+            // 删除多余消息
+            while (messagesDiv.children.length > dataArr.length) {
+                messagesDiv.removeChild(messagesDiv.firstChild);
+            }
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            lastMessagesKey = key;
+            lastMessagesData = dataStr;
+        } catch {
+            document.getElementById('messages').innerHTML = '<div style="color:red;">消息加载失败</div>';
+        }
+    }
+
+    // 定时轮询消息
+    function resetMessagesTimer() {
+        if (messagesTimer) clearInterval(messagesTimer);
+        messagesTimer = setInterval(() => {
+            renderMessages();
+        }, 2000);
+    }
+    resetMessagesTimer();
+
+    document.getElementById('chat-input-form').onsubmit = async e => {
+        e.preventDefault();
+        if (!selectedFriend) return;
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        if (!text) return;
+        try {
+            await fetch(`${API_BASE}/api/send-message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    from: user.username,
+                    to: selectedFriend,
+                    type: 'text',
+                    content: text
+                })
+            });
+            input.value = '';
+            renderMessages();
+        } catch {
+            alert('消息发送失败');
+        }
+    };
+
+    document.getElementById('file-input').onchange = function(e) {
+        if (!selectedFriend) return;
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = async function(evt) {
+            try {
+                let msgType = file.type.startsWith('image/') ? 'image' : 'file';
+                await fetch(`${API_BASE}/api/send-message`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from: user.username,
+                        to: selectedFriend,
+                        type: msgType,
+                        content: evt.target.result,
+                        filename: file.name
+                    })
+                });
+                renderMessages();
+            } catch {
+                alert('文件发送失败');
+            }
+        };
+        reader.readAsDataURL(file);
+        e.target.value = '';
+    };
+
+    // 管理员后台管理
+    if (isAdmin && document.getElementById('btn-admin')) {
+        document.getElementById('btn-admin').onclick = async () => {
+            document.getElementById('admin-modal').style.display = 'flex';
+            // 拉取所有用户
+            let users = [];
+            try {
+                const res = await fetch(`${API_BASE}/api/all-users`);
+                users = await res.json();
+            } catch {}
+            const listDiv = document.getElementById('admin-users-list');
+            listDiv.innerHTML = users.length === 0 ? '<div style="color:#888;">暂无用户</div>' :
+                users.map(u => `
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+                        <img src="${u.avatar || 'https://cdn.jsdelivr.net/gh/edent/SuperTinyIcons/images/svg/user.svg'}" style="width:32px;height:32px;border-radius:50%;object-fit:cover;background:#eee;">
+                        <span style="font-weight:bold;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${u.nickname || u.username}</span>
+                        <span style="color:#888;font-size:13px;">(${u.username})</span>
+                        <button data-uid="${u.username}" class="btn-reset-pwd" style="margin-left:10px;">重置密码</button>
+                        <button data-uid="${u.username}" class="btn-edit-profile">改头像昵称</button>
+                        <button data-uid="${u.username}" class="btn-del-user" style="background:#e11d48;color:#fff;">删除</button>
+                    </div>
+                `).join('');
+            // 事件绑定
+            listDiv.querySelectorAll('.btn-reset-pwd').forEach(btn => {
+                btn.onclick = async () => {
+                    const uname = btn.getAttribute('data-uid');
+                    const npwd = prompt('请输入新密码（不少于6位，包含数字、大小写字母）');
+                    if (!npwd || !checkPassword(npwd)) return alert('密码不符合要求');
+                    await fetch(`${API_BASE}/api/admin-reset-password`, {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({username: uname, password: npwd})
+                    });
+                    alert('密码已重置');
+                };
+            });
+            listDiv.querySelectorAll('.btn-edit-profile').forEach(btn => {
+                btn.onclick = async () => {
+                    const uname = btn.getAttribute('data-uid');
+                    const nnick = prompt('新昵称（可留空）');
+                    const file = document.createElement('input');
+                    file.type = 'file'; file.accept = 'image/*';
+                    file.onchange = async function() {
+                        let avatar = '';
+                        if (file.files[0]) {
+                            const reader = new FileReader();
+                            reader.onload = async function(evt) {
+                                avatar = evt.target.result;
+                                await fetch(`${API_BASE}/api/profile`, {
+                                    method: 'POST',
+                                    headers: {'Content-Type':'application/json'},
+                                    body: JSON.stringify({username: uname, nickname: nnick, avatar})
+                                });
+                                alert('已修改');
+                            };
+                            reader.readAsDataURL(file.files[0]);
+                        } else {
+                            await fetch(`${API_BASE}/api/profile`, {
+                                method: 'POST',
+                                headers: {'Content-Type':'application/json'},
+                                body: JSON.stringify({username: uname, nickname: nnick})
+                            });
+                            alert('已修改');
+                        }
+                    };
+                    file.click();
+                };
+            });
+            listDiv.querySelectorAll('.btn-del-user').forEach(btn => {
+                btn.onclick = async () => {
+                    const uname = btn.getAttribute('data-uid');
+                    if (!confirm('确定要删除该用户吗？')) return;
+                    await fetch(`${API_BASE}/api/delete-user`, {
+                        method: 'POST',
+                        headers: {'Content-Type':'application/json'},
+                        body: JSON.stringify({username: uname})
+                    });
+                    alert('已删除');
+                    btn.parentElement.remove();
+                };
+            });
+        };
+        document.getElementById('btn-close-admin').onclick = () => {
+            document.getElementById('admin-modal').style.display = 'none';
+        };
+    }
+
+    window.onunload = () => {
+        if (messagesTimer) clearInterval(messagesTimer);
+    };
+}
+
+render();
+</script>
+</body>
 </html>
